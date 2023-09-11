@@ -6,7 +6,6 @@ import Link from 'next/link'
 
 import Carousel from '@/components/Carousel'
 import TwitterTimeline from '@/components/Twitter'
-import { startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns'
 import {
   IconBrandPatreon,
   IconBrandTwitch,
@@ -29,13 +28,10 @@ async function getReviews() {
   formData.append('action', 'get')
   formData.append('data[start]', '0')
   formData.append('data[limit]', '10')
-  const res = await fetch(
-    'https://easyallies.com/api/review/get?method=review&action=get&data%5Bstart%5D=0&data%5Blimit%5D=10',
-    {
-      method: 'POST',
-      body: formData,
-    }
-  )
+  const res = await fetch('https://easyallies.com/api/review/get', {
+    method: 'POST',
+    body: formData,
+  })
 
   if (!res.ok) {
     throw new Error('Failed to fetch data')
@@ -138,7 +134,7 @@ export default async function Home() {
               pauseOnMouseEnter: true,
             }}
             iconColor="white"
-            slidesPerView={1}
+            slidesPerView={1.05}
           >
             {latest?.episodes.map((episode) => (
               <div className="flex" key={episode.title}>
@@ -188,7 +184,7 @@ export default async function Home() {
                   author={review.writer}
                   description={review.episode.description.split('\n')[0]}
                   watch={`https://youtube.com/w/${review.videoId}`}
-                  read={`https://easyallies.com/#!/review/${review.urlTitle}`}
+                  read={`/reviews/${review.urlTitle}`}
                 />
               ))}
             </Carousel>
