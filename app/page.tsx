@@ -1,15 +1,10 @@
-'use client'
 import BlogCard from '@/components/BlogCard'
 import SectionHeader from '@/components/SectionHeader'
 import { APIResponse, ReviewAPIResponse } from '@/types/home'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Navigation, Pagination } from 'swiper/modules'
-// import Swiper and modules styles
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
-import { Swiper, SwiperSlide } from 'swiper/react'
+
+import Carousel from '@/components/Carousel'
 
 async function getHome() {
   const res = await fetch('https://easyallies.com/api/site/getHome')
@@ -46,9 +41,12 @@ export default async function Home() {
   const home: APIResponse = await getHome()
   const reviews: ReviewAPIResponse = await getReviews()
 
-  const featuredEpisode = home.shows.find(
-    (show) => show.title === 'Easy Allies Podcast'
-  )?.episodes[0]
+  const latest = home.shows.find((show) => show.title === 'Newest Uploads')
+
+  const shows = home.shows.filter(
+    (show) =>
+      show.title !== 'Easy Allies Reviews' && show.title !== 'Newest Uploads'
+  )
 
   return (
     <main>
@@ -105,58 +103,89 @@ export default async function Home() {
           </div>
         </nav>
         <div className="mx-auto max-w-[1440px]">
-          <h1 className="mb-4 text-3xl font-bold italic text-brandGreen">
+          <h1 className="mb-4 text-4xl font-bold italic text-brandGreen">
             LATEST UPDATES
           </h1>
-          <div className="flex">
-            <div className="w-3/5">
-              <a
-                href={`https://youtube.com/w/${featuredEpisode?.videoId}`}
-                target="blank"
-              >
-                <img src={featuredEpisode?.thumbs.maxres.url || ''} />
-              </a>
-            </div>
-            <div className="flex w-2/5 flex-col justify-evenly bg-brandDark/75 p-16">
-              <h2 className="mb-4 text-3xl font-bold text-white">
-                {featuredEpisode?.title}
-              </h2>
-              <p className="font-medium text-white">
-                {featuredEpisode?.description.split('\n')[0]}
-              </p>
-              <a
-                href={`https://youtube.com/w/${featuredEpisode?.videoId}`}
-                target="blank"
-                className="font-bold text-brandGreen hover:underline"
-              >
-                Watch Now -&gt;
-              </a>
-            </div>
-          </div>
+          <Carousel
+            autoplay={{
+              delay: 7500,
+              pauseOnMouseEnter: true,
+            }}
+            iconColor="white"
+            slidesPerView={1}
+            pagination
+          >
+            {latest?.episodes.map((episode) => (
+              <div className="flex" key={episode.title}>
+                <div className="w-3/5">
+                  <a
+                    href={`https://youtube.com/w/${episode.videoId}`}
+                    target="blank"
+                  >
+                    <img src={episode.thumbs.maxres.url || ''} />
+                  </a>
+                </div>
+                <div className="flex w-2/5 flex-col justify-evenly bg-brandDark/75 px-16 py-8">
+                  <h2 className="mb-4 text-4xl font-bold text-white">
+                    {episode.title}
+                  </h2>
+                  <p className="font-medium text-white">
+                    {episode.description.split('\n')[0]}
+                  </p>
+                  <a
+                    href={`https://youtube.com/w/${episode.videoId}`}
+                    target="blank"
+                    className="font-bold text-brandGreen hover:underline"
+                  >
+                    Watch Now -&gt;
+                  </a>
+                </div>
+              </div>
+            ))}
+          </Carousel>
         </div>
       </section>
       {/* REVIEWS */}
-      <section className="mx-auto max-w-[1440px]">
+      <section className="mx-auto max-w-[1440px] py-6">
         <SectionHeader
           title="EASY ALLIES REVIEWS"
           description="Check out our latest reviews for todays hottest games."
           seeAll="https://easyallies.com/#!/reviews"
         />
-        <Swiper spaceBetween={72} slidesPerView={3} navigation>
+        <Carousel spaceBetween={48} slidesPerView={3} slidesPerGroup={3}>
           {reviews.map((review) => (
-            <SwiperSlide key={review.episode.title}>
-              <BlogCard
-                image={review.episode.thumbs.maxres.url}
-                title={review.episode.title}
-                author={review.writer}
-                description={review.episode.description.split('\n')[0]}
-                watch={`https://youtube.com/w/${review.videoId}`}
-                read={`https://easyallies.com/#!/review/${review.urlTitle}`}
-              />
-            </SwiperSlide>
+            <BlogCard
+              key={review.episode.title}
+              image={review.episode.thumbs.maxres.url}
+              title={review.episode.title}
+              author={review.writer}
+              description={review.episode.description.split('\n')[0]}
+              watch={`https://youtube.com/w/${review.videoId}`}
+              read={`https://easyallies.com/#!/review/${review.urlTitle}`}
+            />
           ))}
-        </Swiper>
+        </Carousel>
       </section>
+      {shows.map((show) => (
+        <section className="mx-auto max-w-[1440px] py-6" key={show.title}>
+          <SectionHeader
+            title={show.title.toUpperCase()}
+            description={show.description}
+            seeAll={`https://www.youtube.com/playlist?list=${show.youtubeId}`}
+          />
+          <Carousel spaceBetween={48} slidesPerView={3} slidesPerGroup={3}>
+            {show.episodes.map((episode) => (
+              <BlogCard
+                key={episode.title}
+                image={episode.thumbs.maxres.url}
+                title={episode.title}
+                description={episode.description.split('\n')[0]}
+                watch={`https://youtube.com/w/${episode.videoId}`}
+              />
+            ))}
+          </Carousel>
+        </section>
+      ))}
     </main>
   )
 }

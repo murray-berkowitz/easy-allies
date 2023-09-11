@@ -25,7 +25,12 @@ const BlogCard = ({
       </a>
       <hr className="h-[3px] w-1/4 bg-brandDark" />
       <div className="gap- flex flex-col">
-        <h4 className="text-sm font-bold text-brandDark">{title}</h4>
+        <h4
+          className="line-clamp-1 min-h-[20px] text-sm font-bold text-brandDark"
+          title={title}
+        >
+          {title}
+        </h4>
         {author && (
           <p className="text-xs text-brandDark">
             By{' '}
