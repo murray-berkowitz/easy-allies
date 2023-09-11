@@ -42,7 +42,7 @@ const Carousel = ({
   }, [swiper])
 
   return (
-    <div className="flex items-center justify-center gap-8">
+    <div className="flex items-center justify-center gap-6">
       <button
         className={`text-${iconColor} disabled:text-gray-400`}
         ref={prevRef}

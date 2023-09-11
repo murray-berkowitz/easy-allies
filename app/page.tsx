@@ -1,10 +1,17 @@
 import BlogCard from '@/components/BlogCard'
 import SectionHeader from '@/components/SectionHeader'
-import { APIResponse, ReviewAPIResponse } from '@/types/home'
+import { APIResponse, ReviewAPIResponse, ScheduleEvent } from '@/types/home'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import Carousel from '@/components/Carousel'
+import TwitterTimeline from '@/components/Twitter'
+import { startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns'
+import {
+  IconBrandPatreon,
+  IconBrandTwitch,
+  IconBrandYoutube,
+} from '@tabler/icons-react'
 
 async function getHome() {
   const res = await fetch('https://easyallies.com/api/site/getHome')
@@ -46,6 +53,25 @@ export default async function Home() {
   const shows = home.shows.filter(
     (show) =>
       show.title !== 'Easy Allies Reviews' && show.title !== 'Newest Uploads'
+  )
+
+  const schedule = home.schedule.reduce(
+    (acc, event) => {
+      const dateObj = new Date(event.date)
+      const date = event.noDate
+        ? 'Also in the works'
+        : dateObj.toLocaleDateString(undefined, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          })
+
+      if (acc[date]) {
+        return { ...acc, [date]: [...acc[date], event] }
+      }
+      return { ...acc, [date]: [event] }
+    },
+    {} as Record<string, ScheduleEvent[]>
   )
 
   return (
@@ -113,7 +139,6 @@ export default async function Home() {
             }}
             iconColor="white"
             slidesPerView={1}
-            pagination
           >
             {latest?.episodes.map((episode) => (
               <div className="flex" key={episode.title}>
@@ -145,47 +170,120 @@ export default async function Home() {
           </Carousel>
         </div>
       </section>
-      {/* REVIEWS */}
-      <section className="mx-auto max-w-[1440px] py-6">
-        <SectionHeader
-          title="EASY ALLIES REVIEWS"
-          description="Check out our latest reviews for todays hottest games."
-          seeAll="https://easyallies.com/#!/reviews"
-        />
-        <Carousel spaceBetween={48} slidesPerView={3} slidesPerGroup={3}>
-          {reviews.map((review) => (
-            <BlogCard
-              key={review.episode.title}
-              image={review.episode.thumbs.maxres.url}
-              title={review.episode.title}
-              author={review.writer}
-              description={review.episode.description.split('\n')[0]}
-              watch={`https://youtube.com/w/${review.videoId}`}
-              read={`https://easyallies.com/#!/review/${review.urlTitle}`}
+      <div className="relative mx-auto flex max-w-[1440px] gap-24">
+        <div className="w-4/5 min-w-0 flex-initial">
+          {/* REVIEWS */}
+          <section className="py-6">
+            <SectionHeader
+              title="EASY ALLIES REVIEWS"
+              description="Check out our latest reviews for todays hottest games."
+              seeAll="https://easyallies.com/#!/reviews"
             />
-          ))}
-        </Carousel>
-      </section>
-      {shows.map((show) => (
-        <section className="mx-auto max-w-[1440px] py-6" key={show.title}>
-          <SectionHeader
-            title={show.title.toUpperCase()}
-            description={show.description}
-            seeAll={`https://www.youtube.com/playlist?list=${show.youtubeId}`}
-          />
-          <Carousel spaceBetween={48} slidesPerView={3} slidesPerGroup={3}>
-            {show.episodes.map((episode) => (
-              <BlogCard
-                key={episode.title}
-                image={episode.thumbs.maxres.url}
-                title={episode.title}
-                description={episode.description.split('\n')[0]}
-                watch={`https://youtube.com/w/${episode.videoId}`}
+            <Carousel spaceBetween={48} slidesPerView={2} slidesPerGroup={2}>
+              {reviews.map((review) => (
+                <BlogCard
+                  key={review.episode.title}
+                  image={review.episode.thumbs.maxres.url}
+                  title={review.episode.title}
+                  author={review.writer}
+                  description={review.episode.description.split('\n')[0]}
+                  watch={`https://youtube.com/w/${review.videoId}`}
+                  read={`https://easyallies.com/#!/review/${review.urlTitle}`}
+                />
+              ))}
+            </Carousel>
+          </section>
+          {shows.map((show) => (
+            <section className="py-6" key={show.title}>
+              <SectionHeader
+                title={show.title.toUpperCase()}
+                description={show.description}
+                seeAll={`https://www.youtube.com/playlist?list=${show.youtubeId}`}
               />
-            ))}
-          </Carousel>
-        </section>
-      ))}
+              <Carousel spaceBetween={48} slidesPerView={3} slidesPerGroup={3}>
+                {show.episodes.map((episode) => (
+                  <BlogCard
+                    key={episode.title}
+                    image={episode.thumbs.maxres.url}
+                    title={episode.title}
+                    description={episode.description.split('\n')[0]}
+                    watch={`https://youtube.com/w/${episode.videoId}`}
+                  />
+                ))}
+              </Carousel>
+            </section>
+          ))}
+        </div>
+        <aside className="mt-16 w-1/5 flex-initial">
+          <h4 className="mb-4 text-xl font-bold italic text-brandDark">
+            TWITTER
+          </h4>
+          <TwitterTimeline screenName="EasyAllies" />
+          <h4 className="my-4 text-xl font-bold italic text-brandDark">
+            SCHEDULE
+          </h4>
+          <div className="flex flex-col gap-6">
+            {Object.entries(schedule).map(([date, events]) => {
+              return (
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm font-bold text-brandDark">{date}</p>
+                  {events.map((event) => {
+                    const date = new Date(event.date)
+                    const time = event.noDate
+                      ? undefined
+                      : date.toLocaleString(undefined, {
+                          hour12: true,
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                    const endTime = event.duration
+                      ? new Date(
+                          date.getTime() + event.duration * 60000
+                        ).toLocaleString(undefined, {
+                          hour12: true,
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : undefined
+                    return (
+                      <div className="flex w-2/3 flex-none flex-col gap-1 pl-2">
+                        <p className="text-sm font-bold text-brandGreen">
+                          {event.title}
+                        </p>
+                        <p className="text-xs italic text-brandDark">
+                          {event.description}
+                        </p>
+                        <p className="align-top text-xs font-semibold text-brandDark">
+                          {!event.noDate && time}
+                          {endTime && !event.noDate
+                            ? `- ${endTime}`
+                            : ''} on {event.service}{' '}
+                          {event.service === 'Twitch' ? (
+                            <IconBrandTwitch
+                              className="inline-block"
+                              size="14"
+                            />
+                          ) : event.service === 'Youtube' ? (
+                            <IconBrandYoutube
+                              className="inline-block"
+                              size="14"
+                            />
+                          ) : (
+                            <IconBrandPatreon
+                              className="inline-block"
+                              size="14"
+                            />
+                          )}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        </aside>
+      </div>
     </main>
   )
 }

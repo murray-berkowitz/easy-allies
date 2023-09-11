@@ -1,7 +1,7 @@
 export interface ScheduleEvent {
   duration: number
   date: string
-  service: 'Twitch' | 'YouTube'
+  service: 'Twitch' | 'Youtube' | 'Patreon'
   description: string
   title: string
   noDate: boolean

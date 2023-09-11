@@ -12,6 +12,7 @@ const config: Config = {
         brandGreen: '#17bf94',
         brandPurple: '#AD0DBF',
         brandDark: '#10062A',
+        brandDarkGreen: '#2E4D59',
       },
       fontFamily: {
         sans: ['var(--font-inter)'],
