@@ -11,7 +11,7 @@ const config: Config = {
       colors: {
         brandGreen: '#17bf94',
         brandPurple: '#AD0DBF',
-        brandDark: '#1F1F1F',
+        brandDark: '#10062A',
       },
       fontFamily: {
         sans: ['var(--font-inter)'],
